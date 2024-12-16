@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	width = 620
-	height = 620
+	width = 680
+	height = 680
 	cellSize = 40
 	rowsCount = height / cellSize
 	colsCount = width / cellSize
@@ -18,28 +18,37 @@ const (
 var (
 	gray = rl.NewColor(31, 35, 53, 255)
 	purple = rl.NewColor(157, 124, 216, 255)
-	cellsMatrix = []rl.Vector2{
-		getRandomV2(),
-		getRandomV2(),
-		getRandomV2(),
-	}
+	cellsMatrix = []Cell{}
 	cellSizeV2 = rl.NewVector2(cellSize, cellSize)
 	frameCounter = 0
 )
 
+type Cell struct {
+	X float32;
+	Y float32;
+	Status bool;
+}
+
 func main() {
-	rl.InitWindow(width, height, "GoL")
+	rl.InitWindow(width, height, "Game of Life")
 	defer rl.CloseWindow()
 
 	rl.SetTargetFPS(144)
+	cellsMatrix = initializeCells(cellsMatrix)
 
+	fmt.Printf("")
 	for !rl.WindowShouldClose() {
 		rl.BeginDrawing()
 		rl.ClearBackground(gray)
 
-		fmt.Println("Resultado: ", (width-cellSize)/cellSize)
-		fmt.Println("Numero random: ", rand.Intn((width-cellSize)/cellSize))
-
+		for _, cell := range cellsMatrix {
+			cellV2 := rl.NewVector2(cell.X, cell.Y)
+			color := purple
+			if !cell.Status {
+				color = gray
+			}
+			rl.DrawRectangleV(cellV2, cellSizeV2, color)
+		}
 		for i := 0; i <= rowsCount; i++ {
 			rl.DrawLine(int32(cellSize*i), 0, int32(cellSize*i), height, rl.RayWhite)
 		}
@@ -48,36 +57,19 @@ func main() {
 			rl.DrawLine(0, int32(cellSize*j), width, int32(cellSize*j), rl.White)
 		}
 
-		for index, k := range cellsMatrix {
-			rl.DrawRectangleV(k, cellSizeV2, purple)
-			if  frameCounter % 14 == 0 {
-				if k.X+cellSize <= width {
-					cellsMatrix[index].X += cellSize
-				} else {
-					cellsMatrix[index].X = 0 
-					cellsMatrix[index].Y += cellSize
-				}
-
-				if k.Y+cellSize > height {
-					cellsMatrix[index].Y = 0 
-				}
-
-
-				fmt.Println("X: ", k.X, "Y: ", k.Y)
-			}
-
-		}
-
 		frameCounter++
-
 		rl.EndDrawing()
 	}
 }
 
-func getRandomV2() rl.Vector2 {
-	return rl.NewVector2(
-		float32(rand.Intn((width-cellSize)/cellSize)*cellSize),
-		float32(rand.Intn((width-cellSize)/cellSize)*cellSize),
-	)	
+func initializeCells(cells []Cell) []Cell {
+	for i := 0; i < rowsCount; i++ {
+		for j := 0; j < colsCount; j++ {
+			fmt.Println("Status: ", rand.Int() % 2 == 1)
+			cell := Cell { X: float32(i*cellSize), Y: float32(j*cellSize), Status: rand.Int() % 2 == 1}	
+			cells = append(cells, cell)
+		}
+	}
 
+	return cells
 }
