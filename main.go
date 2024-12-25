@@ -29,6 +29,7 @@ type Cell struct {
 	Status bool;
 }
 
+
 func main() {
 	rl.InitWindow(width, height, "Game of Life")
 	defer rl.CloseWindow()
@@ -41,6 +42,10 @@ func main() {
 		rl.BeginDrawing()
 		rl.ClearBackground(gray)
 
+		
+		if frameCounter % 10 == 0 {
+			calculateStep()
+		}
 		for _, cell := range cellsMatrix {
 			cellV2 := rl.NewVector2(cell.X, cell.Y)
 			color := purple
@@ -50,7 +55,7 @@ func main() {
 			rl.DrawRectangleV(cellV2, cellSizeV2, color)
 		}
 		for i := 0; i <= rowsCount; i++ {
-			rl.DrawLine(int32(cellSize*i), 0, int32(cellSize*i), height, rl.RayWhite)
+			rl.DrawLine(int32(cellSize*i), 0, int32(cellSize*i), height, rl.White)
 		}
 
 		for j := 0; j <= colsCount; j++ {
@@ -72,4 +77,90 @@ func initializeCells(cells []Cell) []Cell {
 	}
 
 	return cells
+}
+
+func calculateStep() {
+	//Como que ele esquece do j + I * width
+	//linhas + colunas * tamanho da minha linha (quantidade de colunas)
+	//pode ser que seja colunas+linhas também, I e J são nomes idiotas.
+	for i := 0; i < rowsCount; i++ {
+		for j := 0; j < colsCount; j++ {
+			counter := calculateNeighbors(cellsMatrix, j, i, colsCount, rowsCount)	
+			cell := &cellsMatrix[j + i * colsCount]
+
+			fmt.Printf("X: %f, Y: %f, Neighbor: %d\n", cell.X, cell.Y, counter)
+
+			if counter < 2 && cell.Status {
+				cell.Status = false
+			} else if cell.Status && (counter == 2 || counter == 3) {
+				cell.Status = true
+			} else if cell.Status && counter > 3 {
+				cell.Status = false
+			} else if !cell.Status && counter == 3 {
+				cell.Status = true
+			}
+		}
+	}
+}
+
+func calculateNeighbors(cellsMatrix []Cell, column int, line int, colsCount int32, rowsCount int32) int {
+	counter := 0
+	
+	// full left neighbor
+	if 	column > 0 {
+		if cellsMatrix[column-1 + line * int(colsCount)].Status {
+			counter+=1
+		}
+	}
+
+	// full right neighbor
+	if column < int(colsCount-1)  {
+		if cellsMatrix[(column+1) + line * int(colsCount)].Status {
+			counter+=1
+		}
+	}
+
+	// top one
+	if line > 0 {
+		if cellsMatrix[column + (line-1) * int(colsCount)].Status {
+			counter+=1
+		}
+	}
+
+	// bottom one
+	if line < int(rowsCount-1) {
+		if cellsMatrix[column + (line+1) * int(colsCount)].Status {
+			counter+=1
+		}
+	}
+	
+	// top left
+	if line > 0 && column > 0 {
+		if cellsMatrix[(column-1) + (line-1) * int(colsCount)].Status {
+			counter+=1
+		}
+	}
+
+	// top right
+	if line > 0 && column < int(colsCount-1) {
+		if cellsMatrix[(column+1) + (line-1) * int(colsCount)].Status {
+			counter+=1
+		}
+	}
+	
+	// bottom right
+	if line < int(rowsCount-1) && column < int(colsCount-1) {
+		if cellsMatrix[(column+1) + (line+1) * int(colsCount)].Status {
+			counter+=1
+		}
+	}
+
+	// bottom left
+	if line < int(rowsCount-1) && column > 0 {
+		if cellsMatrix[(column-1) + (line+1) * int(colsCount)].Status {
+			counter+=1
+		}
+	}
+
+	return counter
 }
