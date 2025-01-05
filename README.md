@@ -1,1 +1,1 @@
-<![Trying](solo.gif) 
+![Trying](solo.gif) 
